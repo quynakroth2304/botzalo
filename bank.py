@@ -145,11 +145,10 @@ def enqueue(text: str, targets):
 # 5. CLASS BOT ZALO XỬ LÝ LỆNH
 # ==========================================
 class MoneyBot(ZaloAPI):
-    # Thêm =None vào session_cookies để nó không bị bắt buộc truyền vào lúc gọi
-    def __init__(self, api_key, secret_key, imei, session_cookies=None):
-        super().__init__(api_key, secret_key, imei=imei)
-        if session_cookies:
-            self.session_cookies = session_cookies
+    def __init__(self, api_key, secret_key, imei, session_cookies):
+        # KHÔNG DÙNG super().__init__ nữa để tránh lỗi truyền biến sai
+        # Thay vào đó, khởi tạo trực tiếp lớp cha bằng đúng các tham số zlapi yêu cầu
+        ZaloAPI.__init__(self, api_key, secret_key, imei=imei, session_cookies=session_cookies)
 
     def onMessage(self, mid, author_id, message, message_object, thread_id, thread_type):
         if not isinstance(message, str):
@@ -529,10 +528,8 @@ def start_webhook_server():
 # 8. KHỞI CHẠY HỆ THỐNG
 # ==========================================
 if __name__ == "__main__":
-    # Khởi tạo bot với các tham số cơ bản trước
-    bot_client = MoneyBot("</>", "</>", imei=IMEI)
-# Gán trực tiếp session_cookies vào thuộc tính của client sau khi khởi tạo
-    bot_client.session_cookies = SESSION_COOKIES
+    # Truyền trực tiếp SESSION_COOKIES vào hàm khởi tạo
+    bot_client = MoneyBot("</>", "</>", imei=IMEI, session_cookies=SESSION_COOKIES)
 
     threading.Thread(target=sender_worker, daemon=True).start()
     threading.Thread(target=start_webhook_server, daemon=True).start()
