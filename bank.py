@@ -589,4 +589,11 @@ if __name__ == "__main__":
 
     log.info("✅ Bot Quản Lý Tài Chính & Ngân Hàng đã chạy!")
 
-    bot_client.listen()
+    # Vòng lặp tự động kết nối lại khi rớt mạng
+    while True:
+        try:
+            bot_client.listen()
+        except Exception as e:
+            log.error(f"⚠️ Rớt mạng hoặc Zalo ngắt kết nối: {e}")
+            log.info("⏳ Tự động khởi động lại bot sau 5 giây...")
+            time.sleep(5)
