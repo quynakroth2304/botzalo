@@ -526,7 +526,10 @@ def start_webhook_server():
 # 8. KHỞI CHẠY HỆ THỐNG
 # ==========================================
 if __name__ == "__main__":
-    bot_client = MoneyBot("</>", "</>", imei=IMEI, session_cookies=SESSION_COOKIES)
+    # Khởi tạo bot với các tham số cơ bản trước
+    bot_client = MoneyBot("</>", "</>", imei=IMEI)
+# Gán trực tiếp session_cookies vào thuộc tính của client sau khi khởi tạo
+    bot_client.session_cookies = SESSION_COOKIES
 
     threading.Thread(target=sender_worker, daemon=True).start()
     threading.Thread(target=start_webhook_server, daemon=True).start()
