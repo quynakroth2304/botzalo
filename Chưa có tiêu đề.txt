@@ -1,0 +1,257 @@
+import re
+from zlapi import ZaloAPI, ZaloAPIException
+from zlapi.models import *
+import time
+import threading
+import json
+import datetime
+import requests
+import os
+import random
+
+class Honhattruong(ZaloAPI):
+    def __init__(self, api_key, secret_key, imei, session_cookies):
+        super().__init__(api_key, secret_key, imei=imei, session_cookies=session_cookies)
+        self.dangky_file = 'tt.txt'
+        self.codes = {
+            'F88': 9999999,
+            'HNTTOOl': 555555555555555
+        }
+        self.admin_key = '11009922'
+        self.is_admin = False
+
+    def load_registered_users(self):
+        try:
+            with open(self.dangky_file, 'r', encoding='utf-8') as file:
+                return {line.split(',')[0]: (line.strip().split(',')[1], float(line.strip().split(',')[2])) for line in file.readlines() if line.strip()}
+        except FileNotFoundError:
+            return {}
+
+    def save_registered_user(self, user_id, user_name):
+        with open(self.dangky_file, 'a', encoding='utf-8') as file:
+            file.write(f"{user_id},{user_name},500000000\n")
+
+    def update_user_balance(self, user_id, new_balance):
+        users = self.load_registered_users()
+        if user_id in users:
+            user_name = users[user_id][0]
+            with open(self.dangky_file, 'w', encoding='utf-8') as file:
+                for uid, (name, balance) in users.items():
+                    if uid == user_id:
+                        file.write(f"{uid},{name},{new_balance}\n")  
+                    else:
+                        file.write(f"{uid},{name},{balance}\n")  
+
+    def onMessage(self, mid, author_id, message, message_object, thread_id, thread_type):
+        if message is None:
+            return
+            
+        if not isinstance(message, str):
+            return
+
+        print(f"\033[32m{message} \033[39m|\033[31m {author_id} \033[39m|\033[33m {thread_id}\033[0m\n")
+        if message.startswith("hi"):
+            menu_text = (
+                "Danh sách lệnh:\n"
+                "• .dangky name:sau khi đăng kí nhận 500 triệu.\n"
+                "• .game T/X/C/L số tiền.\n"
+                "• .ct name: chuyển tiền cho người khác.\n"
+                "• .code mã: nhập code.\n"
+                "• .sodu xem số dư trong tài khoản.\n"
+                "• .admin key: trở thành admin.\n"
+                "• .buff name: buff vô hạn tiền cho người đó.\n"
+                
+            )            
+            style_menu = MultiMsgStyle([
+                MessageStyle(offset=0, length=15, style="font", size="14", auto_format=False),
+                MessageStyle(offset=16, length=len(menu_text) - 16, style="font", size="12", auto_format=False),
+                MessageStyle(offset=0, length=len(menu_text), style="color", color="#4caf50", auto_format=False),
+            ])          
+            self.replyMessage(
+                Message(
+                    text=menu_text,
+                    style=style_menu
+                ),
+                message_object,
+                thread_id=thread_id,
+                thread_type=thread_type
+            )
+        
+        	
+        if message.startswith(".dangky"):
+            user_name = message[len(".dangky "):].strip()
+            if not user_name:
+                self.replyMessage(Message(text='🚫 Bạn cần cung cấp tên để đăng ký.'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+
+            registered_users = self.load_registered_users()
+
+            if author_id in registered_users:
+                self.replyMessage(Message(text='🚫 Bạn đã đăng ký rồi!'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+
+            self.save_registered_user(author_id, user_name)
+            self.replyMessage(Message(text=f'✅ Đăng ký thành công! Bạn đã được tặng 500 triệu!'), message_object, thread_id=thread_id, thread_type=thread_type)
+
+        elif message.startswith(".code"):
+            args = message.split()
+            if len(args) != 3:
+                self.replyMessage(Message(text='🚫 Vui lòng nhập đúng cú pháp: .code <mã> <số tiền>'), message_object, thread_id=thread_id, thread_type=thread_id)
+                return
+            
+            code = args[1].upper()
+            try:
+                amount = int(args[2])
+            except ValueError:
+                self.replyMessage(Message(text='🚫 Số tiền không hợp lệ!'), message_object, thread_id=thread_id, thread_type=thread_id)
+                return
+            
+            if code in self.codes and self.codes[code] == amount:
+                registered_users = self.load_registered_users()
+                if author_id in registered_users:
+                    user_name, balance = registered_users[author_id]
+                    new_balance = balance + amount
+                    self.update_user_balance(author_id, new_balance)
+                    self.replyMessage(Message(text=f'✅ Bạn đã nhập mã {code} thành công và nhận được {amount}! Số dư mới của bạn: {new_balance}'), message_object, thread_id=thread_id, thread_type=thread_type)
+                else:
+                    self.replyMessage(Message(text='🚫 Bạn cần đăng ký trước khi nhập mã.'), message_object, thread_id=thread_id, thread_type=thread_type)
+            else:
+                self.replyMessage(Message(text='🚫 Mã không hợp lệ hoặc số tiền không đúng!'), message_object, thread_id=thread_id, thread_type=thread_type)
+
+        elif message.startswith(".game"):
+            registered_users = self.load_registered_users()
+            if author_id not in registered_users:
+                self.replyMessage(Message(text='🚫 Bạn cần đăng ký trước khi chơi game.'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+            
+            args = message.split()
+            if len(args) != 3:
+                self.replyMessage(Message(text='🚫 Vui lòng nhập đúng cú pháp: .game <T/X/C/L> <số tiền>'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+            
+            bet_type = args[1].upper()
+            try:
+                bet_amount = int(args[2])
+            except ValueError:
+                self.replyMessage(Message(text='🚫 Số tiền cược không hợp lệ!'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+            
+            if bet_amount <= 0:
+                self.replyMessage(Message(text='🚫 Số tiền cược phải lớn hơn 0.'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+            
+            users_balance = registered_users[author_id][1]
+            if users_balance < bet_amount:
+                self.replyMessage(Message(text='🚫 Bạn không đủ tiền để cược!'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+            
+            dice_results = [random.randint(1, 6) for _ in range(3)]
+            total = sum(dice_results)
+            is_even = total % 2 == 0
+            win_condition = (bet_type == 'T' and total > 10) or (bet_type == 'X' and total < 11) or \
+                            (bet_type == 'C' and is_even) or (bet_type == 'L' and not is_even)
+
+            if win_condition:
+                result_text = "chẵn" if is_even else "lẻ"
+                self.replyMessage(Message(text=f'🎉 Chúc mừng! Bạn đã thắng! Kết quả: {dice_results} = {total} ({result_text}). Bạn nhận được {bet_amount} tiền!'), message_object, thread_id=thread_id, thread_type=thread_type)
+                new_balance = users_balance + bet_amount
+            else:
+                result_text = "chẵn" if is_even else "lẻ"
+                self.replyMessage(Message(text=f'😢 Bạn đã thua! Kết quả: {dice_results} = {total} ({result_text}). Bạn mất {bet_amount} tiền!'), message_object, thread_id=thread_id, thread_type=thread_type)
+                new_balance = users_balance - bet_amount
+
+            self.update_user_balance(author_id, new_balance)
+
+        elif message.startswith(".sodu"):
+            registered_users = self.load_registered_users()
+            if author_id not in registered_users:
+                self.replyMessage(Message(text='🚫 Bạn chưa đăng ký!'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+
+            user_name, balance = registered_users[author_id]
+            self.replyMessage(Message(text=f'💰 Số dư của bạn là: {balance}'), message_object, thread_id=thread_id, thread_type=thread_type)
+
+        elif message.startswith(".ct"):
+            registered_users = self.load_registered_users()
+            if author_id not in registered_users:
+                self.replyMessage(Message(text='🚫 Bạn chưa đăng ký!'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+
+            args = message.split()
+            if len(args) != 3:
+                self.replyMessage(Message(text='🚫 Vui lòng nhập đúng cú pháp: .ct <tên> <số tiền>'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+
+            recipient_name = args[1].strip()
+            transfer_amount = int(args[2])
+
+            if transfer_amount <= 0:
+                self.replyMessage(Message(text='🚫 Số tiền chuyển phải lớn hơn 0.'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+
+            sender_balance = registered_users[author_id][1]
+            if sender_balance < transfer_amount:
+                self.replyMessage(Message(text='🚫 Bạn không đủ tiền để chuyển!'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+
+            recipient_id = None
+            for uid, (name, balance) in registered_users.items():
+                if name.lower() == recipient_name.lower():
+                    recipient_id = uid
+                    break
+
+            if recipient_id is None:
+                self.replyMessage(Message(text=f'🚫 Không tìm thấy người dùng tên {recipient_name}.'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+
+            new_sender_balance = sender_balance - transfer_amount
+            self.update_user_balance(author_id, new_sender_balance)
+
+            recipient_balance = registered_users[recipient_id][1]
+            new_recipient_balance = recipient_balance + transfer_amount
+            self.update_user_balance(recipient_id, new_recipient_balance)
+
+            self.replyMessage(Message(text=f'✅ Đã chuyển {transfer_amount} từ {registered_users[author_id][0]} đến {registered_users[recipient_id][0]}!'), message_object, thread_id=thread_id, thread_type=thread_id)
+
+        elif message.startswith(".admin"):
+            args = message.split()
+            if len(args) != 2:
+                self.replyMessage(Message(text='🚫 Vui lòng nhập đúng cú pháp: .admin <key>'), message_object, thread_id=thread_id, thread_type=thread_id)
+                return
+            
+            key = args[1].strip()
+            if key == self.admin_key:
+                self.is_admin = True
+                self.replyMessage(Message(text='✅ Bạn đã trở thành admin!'), message_object, thread_id=thread_id, thread_type=thread_type)
+            else:
+                self.replyMessage(Message(text='🚫 Key không đúng!'), message_object, thread_id=thread_id, thread_type=thread_id)
+
+        elif message.startswith(".buff"):
+            if not self.is_admin:
+                self.replyMessage(Message(text='🚫 Bạn không có quyền sử dụng lệnh này!'), message_object, thread_id=thread_id, thread_type=thread_id)
+                return
+
+            args = message.split()
+            if len(args) != 2:
+                self.replyMessage(Message(text='🚫 Vui lòng nhập đúng cú pháp: .buff <tên>'), message_object, thread_id=thread_id, thread_type=thread_id)
+                return
+
+            user_name = args[1].strip()
+            registered_users = self.load_registered_users()
+
+            recipient_id = None
+            for uid, (name, balance) in registered_users.items():
+                if name.lower() == user_name.lower():
+                    recipient_id = uid
+                    break
+
+            if recipient_id is None:
+                self.replyMessage(Message(text=f'🚫 Không tìm thấy người dùng tên {user_name}.'), message_object, thread_id=thread_id, thread_type=thread_type)
+                return
+
+            self.update_user_balance(recipient_id, float('inf'))
+            self.replyMessage(Message(text=f'✅ Đã buff tiền vô hạn cho người dùng {user_name}!'), message_object, thread_id=thread_id, thread_type=thread_type)
+imei = "58dcbd17-09c6-4d15-b4fa-c8a3108fd3b0-7b3bbd190626e77d1484feb4c142de04"
+session_cookies = ({"_ga":"GA1.2.1717126932.1728130963","_gid":"GA1.2.274849958.1728130963","_ga_VM4ZJE1265":"GS1.2.1728130966.1.0.1728130966.0.0.0","zputm_source":"","zputm_medium":"","zputm_campaign":"","zpsrc":"","_zlang":"vn","zpsid":"AyPM.366410262.37.QZ6U-E9NlntqhMa8xbU_7PSapIxKOOiiqcM9BvOtyfMhO2bguv3q78LNlnq","zpw_sek":"k23-.366410262.a0.RE5djHVsIg0139orDlPAe6pKByirp6Z8MfewpswVSjL7X0NKGCu7orcYC916otU2Qe8gxP-_VJPWzuFh5f5Ae0","__zi":"3000.SSZzejyD6zOgdh2mtnLQWYQN_RAG01ICFjIXe9fEM8yud-cYd4fQZ7ISwABOIbw6VPNjhp8p.1","__zi-legacy":"3000.SSZzejyD6zOgdh2mtnLQWYQN_RAG01ICFjIXe9fEM8yud-cYd4fQZ7ISwABOIbw6VPNjhp8p.1","app.event.zalo.me":"3064628943094513678","_gat":"1","_ga_RYD7END4JE":"GS1.2.1728144504.2.1.1728144504.60.0.0"})
+honhattruong = Honhattruong('api_key', 'secret_key', imei=imei, session_cookies=session_cookies)
+honhattruong.listen()   

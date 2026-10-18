@@ -1,0 +1,49 @@
+{
+    "4456176": {
+        "issue_id": "829737",
+        "predictions": {
+            "AI 1 (Săn Lạnh)": "Văn phòng",
+            "AI 2 (Săn Nóng)": "Phòng tài vụ",
+            "AI 3 (Cân Bằng)": "Phòng họp",
+            "Advanced AI": "Văn phòng",
+            "Reverse Flow AI": "Phòng họp",
+            "Gemini AI": "N/A (HTTP 404)"
+        },
+        "stats": {
+            "ai1": {
+                "games": 354,
+                "wins": 295,
+                "streak": -1
+            },
+            "ai2": {
+                "games": 370,
+                "wins": 329,
+                "streak": 11
+            },
+            "ai3": {
+                "games": 365,
+                "wins": 318,
+                "streak": 7
+            },
+            "adv": {
+                "games": 370,
+                "wins": 315,
+                "streak": 12
+            },
+            "rev": {
+                "games": 370,
+                "wins": 316,
+                "streak": -1
+            }
+        },
+        "ai_followed_key": "3",
+        "total_profit": 0.0,
+        "last_round": {
+            "last_issue_id": 829735,
+            "choice": "N/A",
+            "killed": "Phòng giám sát",
+            "is_win": false
+        },
+        "timestamp": 1763178110.5506213
+    }
+}

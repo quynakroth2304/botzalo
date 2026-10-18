@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ôn Thi Giấy Phép Lái Xe 2025</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1 id="app-title">Ôn Thi GPLX</h1>
+        <div id="timer" style="display:none;">19:00</div>
+    </header>
+
+    <div id="selection-screen" class="container">
+        <h2>Chọn hạng bằng thi</h2>
+        <div class="license-grid">
+            <button class="btn-select" onclick="App.selectLicense('A1')">A1 (Xe máy)</button>
+            <button class="btn-select" onclick="App.selectLicense('A2')">A2 (PKL)</button>
+            <button class="btn-select" onclick="App.selectLicense('B1')">B1 (Ô tô TĐ)</button>
+            <button class="btn-select" onclick="App.selectLicense('B2')">B2 (Ô tô)</button>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="container" style="display: none;">
+        <div class="info-banner">
+            <span id="info-text">Đang tải dữ liệu...</span>
+            <button class="btn-mini" onclick="App.resetToHome()">Đổi bằng</button>
+        </div>
+
+        <div class="grid-menu">
+            <div class="menu-item bg-orange" onclick="App.startRandomExam()">
+                <i class="fa-solid fa-shuffle"></i><span>Đề ngẫu nhiên</span>
+            </div>
+            <div class="menu-item bg-red" onclick="alert('Tính năng đang cập nhật thêm bộ đề!')">
+                <i class="fa-solid fa-layer-group"></i><span>Thi theo bộ đề</span>
+            </div>
+            <div class="menu-item bg-green" onclick="App.reviewWrongSentences()">
+                <i class="fa-solid fa-triangle-exclamation"></i><span>Câu hay sai</span>
+            </div>
+            <div class="menu-item bg-teal" onclick="App.startReviewMode()">
+                <i class="fa-solid fa-book-open"></i><span>Ôn tập tất cả</span>
+            </div>
+            <div class="menu-item bg-brown"><i class="fa-solid fa-fire"></i><span>Câu điểm liệt</span></div>
+            <div class="menu-item bg-grey"><i class="fa-solid fa-star"></i><span>Top 50 câu khó</span></div>
+            <div class="menu-item bg-blue"><i class="fa-solid fa-signs-post"></i><span>Biển báo</span></div>
+            <div class="menu-item bg-purple"><i class="fa-solid fa-lightbulb"></i><span>Mẹo thi</span></div>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="container" style="display: none;">
+        <div class="quiz-header-bar">
+            <button class="btn-back" onclick="App.backToDashboard()"><i class="fa-solid fa-chevron-left"></i> Thoát</button>
+            <span id="question-progress">1/25</span>
+        </div>
+        
+        <div class="question-box">
+            <div class="question-content">
+                <p id="q-text">Nội dung câu hỏi...</p>
+                <img id="q-image" src="" alt="Hình minh họa">
+            </div>
+
+            <div id="options-container"></div>
+        </div>
+
+        <div id="result-overlay" style="display: none;">
+            <div class="result-box">
+                <h2 id="result-score">23/25</h2>
+                <p id="result-msg">ĐẠT</p>
+                <button onclick="App.backToDashboard()">Về trang chủ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-action" style="display: none;">
+        <button id="btn-submit" onclick="Quiz.confirmAnswer()">Xác nhận</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

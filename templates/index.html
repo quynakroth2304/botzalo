@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Callbot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 13px;
+            color: #1a1a2e;
+            background: #f0f2f5;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 56px;
+            background: #1b2a4a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 0;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .sidebar .logo {
+            width: 38px;
+            height: 38px;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .logo img {
+            width: 28px;
+        }
+
+        .logo-text {
+            font-size: 10px;
+            font-weight: 700;
+            color: #1b2a4a;
+        }
+
+        .nav-item {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            gap: 2px;
+            color: #8da4c5;
+            transition: all .15s;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, .12);
+            color: #fff;
+        }
+
+        .nav-item svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .nav-item span {
+            font-size: 9px;
+        }
+
+        /* MAIN */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* TOPBAR */
+        .topbar {
+            height: 48px;
+            background: #1b2a4a;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .topbar .brand {
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 1px;
+            margin-right: auto;
+        }
+
+        .topbar-btn {
+            background: #2e6be6;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+
+        .topbar-icons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .topbar-icons svg {
+            width: 18px;
+            height: 18px;
+            color: #8da4c5;
+            cursor: pointer;
+        }
+
+        .topbar-icons svg:hover {
+            color: #fff;
+        }
+
+        .user-badge {
+            background: #2e4a7a;
+            color: #fff;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* CONTENT AREA & VIEWS */
+        .content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .view-container {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            background: #f0f2f5;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .view-container.active {
+            display: flex;
+        }
+
+        /* BREADCRUMB */
+        .breadcrumb {
+            padding: 10px 16px 0;
+            font-size: 12px;
+            color: #6b7fa3;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .breadcrumb a {
+            color: #6b7fa3;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .breadcrumb a:hover {
+            color: #2e6be6;
+            text-decoration: underline;
+        }
+
+        .breadcrumb .sep {
+            color: #b0bdd6;
+        }
+
+        .breadcrumb .current {
+            color: #1a1a2e;
+            font-weight: 500;
+        }
+
+        /* REPORT CARD */
+        .report-card {
+            margin: 8px 16px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* REPORT HEADER */
+        .report-header {
+            padding: 12px 16px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #eef0f5;
+            background: #fff;
+        }
+
+        .report-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            padding-bottom: 12px;
+        }
+
+        .report-tabs {
+            display: flex;
+            gap: 0;
+        }
+
+        .tab {
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #6b7fa3;
+            border-bottom: 2px solid transparent;
+            transition: all .15s;
+        }
+
+        .tab.active {
+            color: #2e6be6;
+            border-bottom-color: #2e6be6;
+        }
+
+        /* COMMON BTN / ICONS */
+        .icon-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #e0e4ef;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: #fff;
+            color: #6b7fa3;
+        }
+
+        .icon-btn:hover {
+            background: #f0f2f5;
+        }
+
+        .icon-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .btn-outline {
+            background: #fff;
+            color: #4a5568;
+            border: 1px solid #e0e4ef;
+            border-radius: 6px;
+            padding: 0 12px;
+            height: 32px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: .2s;
+        }
+
+        .btn-outline:hover {
+            background: #f0f2f5;
+        }
+
+        .btn-primary {
+            background: #1b2a4a;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0 12px;
+            height: 32px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: .2s;
+        }
+
+        .btn-primary:hover {
+            background: #2e4a7a;
+        }
+
+        .btn-export {
+            background: #eaf1ff;
+            color: #2e6be6;
+            border: 1px solid #bdd4ff;
+            border-radius: 6px;
+            padding: 0 12px;
+            height: 32px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+
+        /* NÚT TẢI KHÁCH HÀNG TO RÕ RÀNG */
+        .btn-scrape {
+            height: 32px;
+            padding: 0 16px;
+            background: #22c55e;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+            box-shadow: 0 2px 4px rgba(34, 197, 94, 0.2);
+        }
+
+        .btn-scrape:hover {
+            background: #16a34a;
+        }
+
+        /* FILTERS */
+        .filters {
+            padding: 10px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            border-bottom: 1px solid #eef0f5;
+            background: #fff;
+        }
+
+        .filter-select {
+            height: 32px;
+            padding: 0 10px;
+            border: 1px solid #e0e4ef;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #6b7fa3;
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            outline: none;
+        }
+
+        .search-box {
+            height: 32px;
+            border: 1px solid #e0e4ef;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            gap: 6px;
+            background: #fff;
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            font-size: 12px;
+            color: #1a1a2e;
+            font-family: inherit;
+        }
+
+        /* ================== MENU THẢ XUỐNG TÙY CHỈNH (CUSTOM DROPDOWN) ================== */
+        .custom-dropdown {
+            position: relative;
+            display: inline-block;
+            font-size: 12px;
+            z-index: 100;
+            font-family: inherit;
+        }
+
+        .dropdown-header {
+            height: 32px;
+            padding: 0 10px;
+            border: 1px solid #e0e4ef;
+            border-radius: 6px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            cursor: pointer;
+            min-width: 140px;
+            color: #4a5568;
+            transition: border-color 0.2s;
+        }
+
+        .dropdown-header:hover {
+            border-color: #cbd5e1;
+        }
+
+        .dropdown-list {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            width: 100%;
+            background: #fff;
+            border: 1px solid #e0e4ef;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 4px 0;
+        }
+
+        .dropdown-list.show {
+            display: flex;
+        }
+
+        .dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            color: #4a5568;
+            transition: background 0.1s;
+        }
+
+        .dropdown-item:hover {
+            background: #f0f2f5;
+            color: #1a1a2e;
+        }
+
+        /* ================== DASHBOARD MÀN HÌNH TỔNG QUAN ================== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 16px;
+            background: #f0f2f5;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .dash-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+
+        .dash-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 20px;
+        }
+
+        .progress-circle-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .progress-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(#4ade80 100%, #e0e4ef 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .progress-inner {
+            width: 120px;
+            height: 120px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .progress-val {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4ade80;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            color: #4ade80;
+            font-weight: 500;
+        }
+
+        .progress-sub {
+            font-size: 12px;
+            color: #6b7fa3;
+        }
+
+        .cost-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: calc(100% - 40px);
+            font-size: 24px;
+            font-weight: 500;
+            color: #1a1a2e;
+        }
+
+        .pie-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            padding: 10px 0;
+        }
+
+        .pie-1 {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: conic-gradient(#f5a623 0% 61.28%, #3b82f6 61.28% 100%);
+            position: relative;
+        }
+
+        .pie-2 {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: conic-gradient(#3b82f6 0% 52.97%, #38bdf8 52.97% 62.55%, #f5a623 62.55% 100%);
+            position: relative;
+        }
+
+        .pie-label {
+            position: absolute;
+            font-size: 10px;
+            color: #6b7fa3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pie-label.thanhcong {
+            top: 40%;
+            right: -60px;
+        }
+
+        .pie-label.thatbai {
+            bottom: 20%;
+            left: -60px;
+            text-align: right;
+        }
+
+        .pie-label.chothulai {
+            top: -10px;
+            left: 40%;
+        }
+
+        .legend-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 12px;
+            color: #6b7fa3;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 14px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        /* ================== TABLE BÁO CÁO CHI TIẾT ================== */
+        .table-wrap {
+            flex: 1;
+            overflow: auto;
+            background: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            background: #f7f8fc;
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7fa3;
+            border-bottom: 1px solid #eef0f5;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #f2f4f8;
+            transition: background .12s;
+        }
+
+        tbody tr:hover {
+            background: #f7f9ff;
+        }
+
+        td {
+            padding: 10px 12px;
+            vertical-align: top;
+        }
+
+        .checkbox-col {
+            width: 36px;
+        }
+
+        input[type=checkbox] {
+            width: 14px;
+            height: 14px;
+            accent-color: #2e6be6;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f5a623, #e05c00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .avatar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .phone-badge {
+            background: #f5a623;
+            color: #fff;
+            border-radius: 5px;
+            padding: 3px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            width: fit-content;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 4px;
+            margin-top: 2px;
+        }
+
+        .zalo {
+            color: #0068ff;
+        }
+
+        .customer-name {
+            font-weight: 500;
+            color: #1a1a2e;
+            font-size: 12px;
+        }
+
+        .customer-code {
+            font-size: 11px;
+            color: #9aa5be;
+        }
+
+        .status-row {
+            font-size: 12px;
+            margin-bottom: 3px;
+            color: #4a5568;
+        }
+
+        .status-success {
+            color: #22c55e;
+            font-weight: 500;
+        }
+
+        .status-bot {
+            color: #f5a623;
+        }
+
+        audio {
+            height: 30px;
+            width: 180px;
+            outline: none;
+            border-radius: 4px;
+        }
+
+        .note-text {
+            font-size: 11px;
+            color: #4a5568;
+            max-width: 220px;
+            line-height: 1.5;
+            margin-bottom: 6px;
+        }
+
+        .btn-zalo-send {
+            background: #0068ff;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-zalo-send:hover {
+            background: #0054cc;
+        }
+
+        /* PAGINATION */
+        .pagination {
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid #eef0f5;
+            background: #fff;
+        }
+
+        .page-info {
+            font-size: 12px;
+            color: #6b7fa3;
+        }
+
+        /* ================== KIỂU DÁNG MÀN HÌNH 1 ================== */
+        .camp-name {
+            font-weight: 600;
+            color: #1a1a2e;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 18px;
+            margin-top: 4px;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #22c55e;
+            border-radius: 18px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 18px;
+            bottom: 2px;
+            background-color: white;
+            border-radius: 50%;
+        }
+
+        .progress-track {
+            width: 180px;
+            height: 6px;
+            background: #e0e4ef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .progress-fill {
+            width: 100%;
+            height: 100%;
+            background: #0068ff;
+            border-radius: 3px;
+        }
+
+        .progress-text {
+            font-size: 11px;
+            color: #6b7fa3;
+        }
+
+        .btn-report-link {
+            color: #22c55e;
+            border: 1px solid #22c55e;
+            background: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: .2s;
+        }
+
+        .btn-report-link:hover {
+            background: #ecfdf5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="logo"><span class="logo-text">U</span></div>
+        <div class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2" />
+                <rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2" />
+                <rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2" />
+                <rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2" />
+            </svg><span>Danh bạ</span></div>
+        <div class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 11H4L5 9z" />
+            </svg><span>Bán hàng</span></div>
+        <div class="nav-item active" onclick="switchView('campaigns')"><svg fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+            </svg><span>Chiến dịch</span></div>
+        <div class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg><span>Callbot</span></div>
+        <div class="nav-item"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg><span>Telesale</span></div>
+    </div>
+
+    <div class="main">
+        <div class="topbar">
+            <span class="brand">UCALL</span>
+            <button class="topbar-btn">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Tải app điện thoại
+            </button>
+            <div class="topbar-icons">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+            </div>
+            <div class="user-badge">B &nbsp; Company ▾</div>
+        </div>
+
+        <div class="content">
+
+            <div id="viewCampaigns" class="view-container active">
+                <div class="breadcrumb">
+                    <a href="#">Chiến dịch</a> <span class="sep">/</span> <span class="current">Callbot AI Auto
+                        Call</span>
+                </div>
+
+                <div class="report-card">
+                    <div class="filters">
+                        <div class="filter-select">Trạng thái ▾</div>
+                        <div class="filter-select">Nhân viên ▾</div>
+                        <div class="filter-select">Quản lý ▾</div>
+                        <div class="filter-select">Từ ngày &nbsp; &rarr; &nbsp; Đến ngày 📅</div>
+                        <div class="search-box" style="margin-left:auto;">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input type="text" placeholder="Tìm kiếm chiến dịch" style="width: 140px;">
+                        </div>
+
+                        <div class="filter-actions">
+                            <button class="btn-outline">
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                </svg>
+                                Thêm KH vào nhiều chiến dịch
+                            </button>
+                            <button class="btn-primary" id="btnFakeCreate" onclick="silentLoginAndLoad()">
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4" />
+                                </svg>
+                                Tạo chiến dịch
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tên chiến dịch</th>
+                                    <th>Trạng thái</th>
+                                    <th style="width: 250px;">Tiến độ</th>
+                                    <th>Cập nhật lúc</th>
+                                    <th style="text-align: right; padding-right: 20px;">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="campaignTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align:center; padding:30px; color:#6b7fa3;">Chưa có dữ
+                                        liệu. Hãy bấm "Tạo chiến dịch" để đồng bộ hệ thống.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <div class="page-info" id="campStatusText">Hệ thống sẵn sàng.</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="viewReports" class="view-container">
+                <div class="breadcrumb">
+                    <a href="#">Chiến dịch</a> <span class="sep">/</span>
+                    <a onclick="switchView('campaigns')">Callbot AI Auto Call</a> <span class="sep">/</span>
+                    <span class="current">Báo cáo</span>
+                </div>
+
+                <div
+                    style="margin: 8px 16px 0; background: #fff; border-radius: 10px 10px 0 0; box-shadow: 0 1px 2px rgba(0,0,0,.05);">
+                    <div class="report-header" style="border-radius: 10px 10px 0 0;">
+                        <div>
+                            <div class="report-title" id="reportHeaderName">Đang tải...</div>
+                        </div>
+
+                        <div class="report-tabs">
+                            <div class="tab active" id="tabOverview" onclick="switchTab('overview')">Tổng quan</div>
+                            <div class="tab" id="tabDetail" onclick="switchTab('detail')">Chi tiết</div>
+                        </div>
+
+                        <div class="report-actions">
+                            <div class="icon-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                </svg></div>
+                            <div class="icon-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg></div>
+                            <div class="icon-btn" onclick="autoScrapeCurrent()"><svg fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg></div>
+                            <div class="icon-btn" onclick="switchView('campaigns')"><svg fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="overviewContent"
+                    style="margin: 0 16px 8px; display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+                    <div class="dashboard-grid">
+                        <div class="dash-card">
+                            <div class="dash-title">Tiến độ chiến dịch</div>
+                            <div class="progress-circle-wrap">
+                                <div class="progress-circle">
+                                    <div class="progress-inner">
+                                        <div class="progress-val">100%</div>
+                                        <div class="progress-text">chiến dịch</div>
+                                    </div>
+                                </div>
+                                <div class="progress-sub" id="overviewTotalCust">2345 / 2345 khách hàng</div>
+                            </div>
+                        </div>
+                        <div class="dash-card">
+                            <div class="dash-title">Tổng chi phí</div>
+                            <div class="cost-wrap" id="overviewTotalCost">195,500 VND</div>
+                        </div>
+                        <div class="dash-card">
+                            <div class="dash-title">Toàn bộ khách hàng</div>
+                            <div class="pie-wrap">
+                                <div class="pie-1">
+                                    <div class="pie-label chothulai">Chờ thử lại<br>0%</div>
+                                    <div class="pie-label thatbai">Thất bại<br>61.28%</div>
+                                    <div class="pie-label thanhcong" style="top:50%; right:-80px;">Thành công<br>38.72%
+                                    </div>
+                                </div>
+                                <div class="legend-list">
+                                    <div class="legend-item">
+                                        <div class="dot" style="background:#3b82f6"></div> Thành công
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="dot" style="background:#f5a623"></div> Thất bại
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="dot" style="background:#38bdf8"></div> Chờ thử lại
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dash-card">
+                            <div class="dash-title">Khách hàng gọi thành công</div>
+                            <div class="pie-wrap">
+                                <div class="pie-2">
+                                    <div class="pie-label" style="top:20%; left:-50px;">Dập máy<br>37.45%</div>
+                                    <div class="pie-label" style="bottom:10%; left:-30px;">Không trả lời bot<br>9.58%
+                                    </div>
+                                    <div class="pie-label" style="top:50%; right:-70px;">Trả lời bot<br>52.97%</div>
+                                </div>
+                                <div class="legend-list">
+                                    <div class="legend-item">
+                                        <div class="dot" style="background:#3b82f6"></div> Trả lời bot
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="dot" style="background:#38bdf8"></div> Không trả lời bot
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="dot" style="background:#f5a623"></div> Dập máy
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="detailContent"
+                    style="margin: 0 16px 8px; display: none; flex-direction: column; flex: 1; overflow: hidden; background: #fff; border-radius: 0 0 10px 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08);">
+
+                    <div class="filters">
+                        <div class="filter-select">Trạng thái ▾</div>
+                        <div class="filter-select">Có phản hồi bot ▾</div>
+                        <div class="filter-select">Nhãn ▾</div>
+                        <div class="filter-select">Nhân viên ▾</div>
+
+                        <div class="custom-dropdown">
+                            <div class="dropdown-header" id="customDropdownHeader" onclick="toggleDropdown(event)">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        style="color:#6b7fa3">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span id="customDropdownText">Đã kiểm tra</span>
+                                </div>
+                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    style="color:#6b7fa3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                            <div class="dropdown-list" id="customDropdownList">
+                                <div class="dropdown-item" onclick="selectFilter('true', 'Đã kiểm tra')">Đã kiểm tra
+                                </div>
+                                <div class="dropdown-item" onclick="selectFilter('false', 'Chưa kiểm tra')">Chưa kiểm
+                                    tra</div>
+                            </div>
+                            <input type="hidden" id="filterChecked" value="true">
+                        </div>
+
+                        <div class="search-box">
+                            <span style="font-size:12px; color:#6b7fa3;">Trang:</span>
+                            <input type="number" id="pageInput" value="1" style="width: 40px; text-align: center;">
+                            <span id="totalPagesDisplay"
+                                style="font-size:12px; color:#1a1a2e; font-weight:bold; margin-right:5px;">/ ?</span>
+                        </div>
+
+                        <button class="btn-scrape" onclick="autoScrapeCurrent()">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            TẢI KHÁCH HÀNG
+                        </button>
+
+                        <div class="filter-actions">
+                            <button class="btn-outline"
+                                style="color: #2e6be6; border-color: #bdd4ff; background: #eaf1ff;"
+                                onclick="exportExcel()">
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Xuất báo cáo
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <datalist id="label-suggestions">
+                            <option value="Có nhu cầu"></option>
+                            <option value="Không nhu cầu"></option>
+                            <option value="Hẹn gọi lại"></option>
+                            <option value="Sai số"></option>
+                            <option value="Máy bận"></option>
+                            <option value="Không nghe máy"></option>
+                            <option value="Đã chốt"></option>
+                            <option value="Chưa xác định"></option>
+                        </datalist>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="checkbox-col"><input type="checkbox"></th>
+                                    <th style="width: 150px;">Thông tin liên hệ</th>
+                                    <th style="width: 200px;">Thông tin khách hàng</th>
+                                    <th style="width: 180px;">Trạng thái</th>
+                                    <th style="width: 230px;">Kết quả cuộc gọi</th>
+                                    <th style="width: 150px;">Nhãn dán</th>
+                                    <th>Các block nghe</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination">
+                        <div class="page-info" id="reportStatusText">Sẵn sàng chờ lệnh...</div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- BIẾN TOÀN CỤC ---
+        let currentCampaigns = [];
+        let currentData = [];
+        let currentCampId = "";
+        let currentCampName = "";
+        let isDataLoadedForCurrentTab = false;
+
+        const zaloIconSvg = `<svg class="zalo" viewBox="0 0 40 40" fill="currentColor" width="16" height="16"><rect width="40" height="40" rx="8" fill="#0068ff"/><text x="8" y="27" font-size="16" font-weight="bold" fill="white" font-family="Arial">Z</text></svg>`;
+
+        // --- ĐIỀU HƯỚNG ---
+        function switchView(view) {
+            document.getElementById('viewCampaigns').classList.remove('active');
+            document.getElementById('viewReports').classList.remove('active');
+            if (view === 'campaigns') {
+                document.getElementById('viewCampaigns').classList.add('active');
+            } else {
+                document.getElementById('viewReports').classList.add('active');
+            }
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tabOverview').classList.remove('active');
+            document.getElementById('tabDetail').classList.remove('active');
+            document.getElementById('overviewContent').style.display = 'none';
+            document.getElementById('detailContent').style.display = 'none';
+
+            if (tab === 'overview') {
+                document.getElementById('tabOverview').classList.add('active');
+                document.getElementById('overviewContent').style.display = 'flex';
+            } else {
+                document.getElementById('tabDetail').classList.add('active');
+                document.getElementById('detailContent').style.display = 'flex';
+                // Chỉ tải tự động nếu chưa có dữ liệu nào
+                if (!isDataLoadedForCurrentTab) {
+                    autoScrapeCurrent();
+                    isDataLoadedForCurrentTab = true;
+                }
+            }
+        }
+
+        // --- LOGIC CHO MENU THẢ XUỐNG TÙY CHỈNH ---
+        function toggleDropdown(e) {
+            e.stopPropagation(); // Ngăn click lan ra ngoài
+            document.getElementById('customDropdownList').classList.toggle('show');
+        }
+
+        function selectFilter(val, text) {
+            // Lưu trạng thái Đã/Chưa kiểm tra vào thẻ ẩn
+            document.getElementById('filterChecked').value = val;
+            // Cập nhật tên hiển thị lên ô Dropdown
+            document.getElementById('customDropdownText').innerText = text;
+            // Đóng danh sách thả xuống
+            document.getElementById('customDropdownList').classList.remove('show');
+
+            // Tự động kéo về Trang 1 và tải Data mới
+            document.getElementById('pageInput').value = 1;
+            autoScrapeCurrent();
+        }
+
+        // Bấm ra ngoài khoảng trắng thì tự đóng Menu
+        window.onclick = function (e) {
+            if (!e.target.closest('.custom-dropdown')) {
+                const list = document.getElementById('customDropdownList');
+                if (list) list.classList.remove('show');
+            }
+        }
+
+        // --- LOGIC MÀN HÌNH 1: CAMPAIGN LIST ---
+        async function silentLoginAndLoad() {
+            const btn = document.getElementById('btnFakeCreate');
+            const statusText = document.getElementById('campStatusText');
+
+            btn.disabled = true; btn.style.opacity = "0.6";
+            btn.innerHTML = `<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Đang tải...`;
+
+            try {
+                statusText.innerText = "Đang kết nối Server & Vượt bảo mật...";
+                await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: "bq.truong1805@gmail.com", password: "Ucall@123callbot" })
+                });
+
+                statusText.innerText = "Đang đồng bộ dữ liệu chiến dịch...";
+                const res = await fetch('/api/campaigns');
+                const data = await res.json();
+
+                if (data.campaigns && data.campaigns.length > 0) {
+                    currentCampaigns = data.campaigns;
+                    renderCampaignList(data.campaigns);
+                    statusText.innerText = `Đã tải xong ${data.campaigns.length} chiến dịch.`;
+                } else {
+                    statusText.innerText = "Không tìm thấy chiến dịch nào.";
+                }
+            } catch (err) {
+                statusText.innerText = "Lỗi kết nối máy chủ!";
+            } finally {
+                btn.disabled = false; btn.style.opacity = "1";
+                btn.innerHTML = `<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Tạo chiến dịch`;
+            }
+        }
+
+        function renderCampaignList(campaigns) {
+            const tbody = document.getElementById('campaignTableBody');
+            tbody.innerHTML = '';
+            const todayStr = new Date().toISOString().split('T')[0] + " 10:25:35";
+
+            campaigns.forEach(camp => {
+                const randNum = Math.floor(Math.random() * 3000) + 1000;
+                const html = `
+            <tr>
+                <td><div class="camp-name">${camp.name}</div></td>
+                <td>
+                    <div style="font-size:12px; color:#4a5568;"><span class="status-dot"></span> Hoàn thành</div>
+                    <div class="toggle-switch">
+                      <div class="slider"></div><div class="slider:before"></div>
+                    </div>
+                </td>
+                <td>
+                    <div class="progress-track"><div class="progress-fill"></div></div>
+                    <div class="progress-text">${randNum} / ${randNum} khách hàng &nbsp; <svg width="12" height="12" fill="#22c55e" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+                </td>
+                <td style="font-size:12px; color:#4a5568;">${todayStr}</td>
+                <td>
+                    <div style="display: flex; gap: 6px; align-items: center; justify-content: flex-end;">
+                        <div class="btn-report-link" onclick="openReportView('${camp.id}', '${camp.name.replace(/'/g, "\\'")}', ${randNum})">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            Báo cáo
+                        </div>
+                        <div class="icon-btn" style="width:26px;height:26px"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></div>
+                    </div>
+                </td>
+            </tr>
+        `;
+                tbody.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        // --- LOGIC MÀN HÌNH 2: BÁO CÁO & LẤY DATA ---
+        function openReportView(id, name, randNum) {
+            currentCampId = id;
+            currentCampName = name;
+            isDataLoadedForCurrentTab = false;
+
+            document.getElementById('reportHeaderName').innerText = name;
+
+            // Gán lại mặc định là Đã kiểm tra mỗi khi mở Campaign mới
+            document.getElementById('filterChecked').value = 'true';
+            document.getElementById('customDropdownText').innerText = 'Đã kiểm tra';
+            document.getElementById('customDropdownList').classList.remove('show');
+
+            document.getElementById('overviewTotalCust').innerText = `${randNum} / ${randNum} khách hàng`;
+            let cost = (randNum * 120).toLocaleString('vi-VN');
+            document.getElementById('overviewTotalCost').innerText = `${cost} VND`;
+
+            switchView('report');
+            switchTab('overview');
+        }
+
+        async function autoScrapeCurrent() {
+            const page = document.getElementById('pageInput').value;
+            const checkedStatus = document.getElementById('filterChecked').value;
+            const statusText = document.getElementById('reportStatusText');
+            const tbody = document.getElementById('reportTableBody');
+
+            statusText.innerHTML = `<b style="color:#2e6be6">Đang trích xuất dữ liệu Khách hàng...</b>`;
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 30px;">Đang cào dữ liệu từ hệ thống...</td></tr>';
+
+            try {
+                const res = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ campaign_id: currentCampId, page: page, checked: checkedStatus })
+                });
+                const result = await res.json();
+
+                if (!result.success) {
+                    tbody.innerHTML = '';
+                    return statusText.innerHTML = `<b style="color:#ef4444">Lỗi: ${result.message}</b>`;
+                }
+
+                // TỰ ĐỘNG HIỂN THỊ CHÍNH XÁC SỐ TRANG
+                document.getElementById('totalPagesDisplay').innerText = `/ ${result.total_pages}`;
+
+                let startIdx = (page - 1) * 10 + 1;
+                let endIdx = Math.min(page * 10, result.total_records);
+                if (result.total_records === 0) { startIdx = 0; endIdx = 0; }
+
+                // TỰ ĐỘNG HIỂN THỊ CHÍNH XÁC SỐ LƯỢNG KHÁCH HÀNG TƯƠNG ỨNG VỚI CHẾ ĐỘ LỌC
+                statusText.innerHTML = `${startIdx}-${endIdx} trên <b>${result.total_records}</b> khách hàng`;
+
+                currentData = result.data;
+                tbody.innerHTML = '';
+
+                if (result.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 30px; color:#6b7fa3;">Trang này không có khách hàng nào thỏa mãn bộ lọc.</td></tr>';
+                    return;
+                }
+
+                result.data.forEach(cus => {
+                    const isMãValid = !["N/A", "Chưa có thông tin"].includes(cus['Mã']);
+                    const avatarChar = cus['SĐT'] && cus['SĐT'] !== 'N/A' ? cus['SĐT'].slice(-1) : '?';
+
+                    const html = `
+                <tr>
+                    <td class="checkbox-col"><input type="checkbox"></td>
+                    <td>
+                      <div class="avatar-wrap"><div class="avatar">${avatarChar}</div></div>
+                      <div class="phone-badge">${cus['SĐT']}</div>
+                      <div class="social-icons">${zaloIconSvg}</div>
+                    </td>
+                    <td>
+                      <div class="customer-name">Khách hàng</div>
+                      <div class="customer-code" style="${isMãValid ? 'color:#2e6be6;font-weight:600;' : 'color:#f5a623;'}">unnamed: 0: ${cus['Mã']}</div>
+                    </td>
+                    <td>
+                      <div class="status-row">Trạng thái: <span class="status-success">Gọi thành công</span></div>
+                      <div class="status-row">Chất lượng cuộc gọi: <span class="status-bot">Có phản hồi bot</span></div>
+                    </td>
+                    <td>
+                        ${cus.Audio_URL && cus.Audio_URL !== 'N/A' ?
+                            `<audio controls preload="none"><source src="/api/play_audio?url=${encodeURIComponent(cus.Audio_URL)}" type="audio/mpeg"></audio>` :
+                            '<span style="font-size:11px;color:#b0bdd6">Không có file ghi âm</span>'}
+                    </td>
+                    <td>
+                        <input type="text" list="label-suggestions" class="filter-select" 
+                               style="width: 120px; height: 28px; border: 1px solid #e0e4ef; appearance: auto;"
+                               value="${cus['Phân loại']}" 
+                               onchange="updateNeed('${cus['SĐT']}', this.value)" 
+                               placeholder="Gõ nhãn...">
+                    </td>
+                    <td>
+                        <div class="note-text">hỏi quan tâm: <b style="color:#1a1a2e">${cus['Lời thoại cũ']}</b></div>
+                        
+                        <button class="btn-zalo-send" onclick="sendZalo('${cus['Mã']}', '${cus['SĐT']}', this.parentElement.previousElementSibling.querySelector('input').value, this)">
+                          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                          Gửi Zalo
+                        </button>
+                    </td>
+                </tr>
+            `;
+                    tbody.insertAdjacentHTML('beforeend', html);
+                });
+            } catch (err) {
+                tbody.innerHTML = '';
+                statusText.innerHTML = `<b style="color:#ef4444">Lỗi trích xuất: ${err}</b>`;
+            }
+        }
+
+        function updateNeed(sdt, newNeed) {
+            const customer = currentData.find(c => c['SĐT'] === sdt);
+            if (customer) {
+                customer['Phân loại'] = newNeed;
+            }
+            document.getElementById('reportStatusText').innerHTML = `<b style="color:#2e6be6">Đã lưu nhãn mới cho SĐT ${sdt}</b>`;
+        }
+
+        async function sendZalo(ma_can, sdt, phan_loai, btn) {
+            btn.innerText = "Đang gửi...";
+            btn.style.opacity = "0.7";
+            const res = await fetch('/api/send_zalo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    camp_name: currentCampName, ma_can: ma_can, sdt: sdt, phan_loai: phan_loai
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                btn.innerHTML = `Đã gửi <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display:inline;margin-left:2px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>`;
+                btn.style.backgroundColor = "#22c55e";
+                btn.style.opacity = "1";
+            } else {
+                btn.innerText = "Lỗi Zalo";
+                btn.style.backgroundColor = "#ef4444";
+                btn.style.opacity = "1";
+                alert(data.message);
+            }
+        }
+
+        async function exportExcel() {
+            if (currentData.length === 0) return alert("Chưa có data trên bảng để xuất!");
+
+            const co_ma = currentData.filter(c => !["N/A", "Chưa có thông tin"].includes(c['Mã']));
+            const khong_ma = currentData.filter(c => ["N/A", "Chưa có thông tin"].includes(c['Mã']));
+
+            const mapData = (arr) => arr.map(c => ({
+                "Chiến Dịch": currentCampName, "Mã Căn/Căn hộ": c['Mã'], "SĐT": c['SĐT'],
+                "Phân loại": c['Phân loại'], "Nội dung": c['Lời thoại cũ']
+            }));
+
+            document.getElementById('reportStatusText').innerHTML = "Đang khởi tạo file xuất báo cáo...";
+            const res = await fetch('/api/export_excel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ co_ma: mapData(co_ma), khong_ma: mapData(khong_ma) })
+            });
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "bao_cao_ucall.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            document.getElementById('reportStatusText').innerHTML = `<b style="color:#22c55e">Xuất báo cáo Excel thành công!</b>`;
+        }
+
+        // Khởi động vào màn hình 1
+        window.onload = function () {
+            switchView('campaigns');
+        };
+    </script>
+</body>
+
+</html>
