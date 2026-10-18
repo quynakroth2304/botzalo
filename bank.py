@@ -145,8 +145,11 @@ def enqueue(text: str, targets):
 # 5. CLASS BOT ZALO XỬ LÝ LỆNH
 # ==========================================
 class MoneyBot(ZaloAPI):
-    def __init__(self, api_key, secret_key, imei, session_cookies):
-        super().__init__(api_key, secret_key, imei=imei, session_cookies=session_cookies)
+    # Thêm =None vào session_cookies để nó không bị bắt buộc truyền vào lúc gọi
+    def __init__(self, api_key, secret_key, imei, session_cookies=None):
+        super().__init__(api_key, secret_key, imei=imei)
+        if session_cookies:
+            self.session_cookies = session_cookies
 
     def onMessage(self, mid, author_id, message, message_object, thread_id, thread_type):
         if not isinstance(message, str):
