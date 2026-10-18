@@ -3,3 +3,4 @@ requests
 pycryptodome
 aiohttp
 websocket-client
+munch
