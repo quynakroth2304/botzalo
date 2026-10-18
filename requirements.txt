@@ -1,2 +1,5 @@
 flask
 requests
+pycryptodome
+aiohttp
+websocket-client
