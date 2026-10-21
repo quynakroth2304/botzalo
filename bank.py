@@ -56,11 +56,11 @@ SESSION_COOKIES = {
     "app.event.zalo.me": "2887145055420781720",
 }
 
-ADMIN_ZALO_ID = "3978113450181458224"   
-WEBHOOK_SECRET = "truong_tcb_2026"       
+ADMIN_ZALO_ID = "3978113450181458224"
+WEBHOOK_SECRET = "truong_tcb_2026"
 
-ORDER_TTL = 30 * 60        
-DEDUPE_WINDOW = 15         
+ORDER_TTL = 30 * 60
+DEDUPE_WINDOW = 15
 SEND_RETRIES = 3
 
 os.makedirs("cache", exist_ok=True)
@@ -83,7 +83,7 @@ def load_finance():
                 data.update(saved_data)
                 if "debt_details" not in data:
                     data["debt_details"] = {}
-        except:
+        except Exception:
             pass
     return data
 
@@ -103,7 +103,7 @@ def add_transaction(txn_type, amount, reason, person=None):
         now = datetime.now()
         date_str = now.strftime("%Y-%m-%d")
         time_str = now.strftime("%H:%M")
-        
+
         if txn_type in ["thu", "doanh_thu"]:
             finance_data["balance"] += amount
         elif txn_type in ["chi", "chi_ngoai"]:
@@ -120,7 +120,7 @@ def add_transaction(txn_type, amount, reason, person=None):
                 finance_data["debt_details"][person] = finance_data["debt_details"].get(person, 0) - amount
                 if finance_data["debt_details"][person] <= 0:
                     del finance_data["debt_details"][person]
-            
+
         finance_data["history"].insert(0, {
             "type": txn_type,
             "amount": amount,
@@ -128,7 +128,7 @@ def add_transaction(txn_type, amount, reason, person=None):
             "date": date_str,
             "time": time_str
         })
-        
+
         finance_data["history"] = finance_data["history"][:50]
         save_finance(finance_data)
 
@@ -137,10 +137,10 @@ def generate_finance_report():
     now = datetime.now()
     today_str = now.strftime("%Y-%m-%d")
     today_display = now.strftime("%d/%m/%Y")
-    
+
     doanh_thu_ngay = 0
     chi_tieu_ngoai = 0
-    
+
     history_lines = []
     with finance_lock:
         for tx in finance_data["history"]:
@@ -149,22 +149,21 @@ def generate_finance_report():
                     doanh_thu_ngay += tx["amount"]
                 elif tx["type"] in ["chi", "chi_ngoai", "tra"]:
                     chi_tieu_ngoai += tx["amount"]
-                    
+
         for tx in finance_data["history"][:5]:
             icon = "🔺" if tx["type"] in ["thu", "doanh_thu", "vay"] else "🔻"
             action = tx["type"].upper()
             history_lines.append(f"{icon} {tx['time']}: {action} {fmt_money(tx['amount'])}đ ({tx['reason']})")
-            
+
         debt_details_str = ""
         if finance_data.get("debt_details"):
             for person, debt_amt in finance_data["debt_details"].items():
                 if debt_amt > 0:
                     debt_details_str += f"   👤 Nợ {person}: {fmt_money(debt_amt)} VNĐ\n"
-                    
+
     history_str = "\n".join(history_lines) if history_lines else "Chưa có giao dịch nào."
-    
     debt_section = f"💳 Tổng nợ: {fmt_money(finance_data['debt'])} VNĐ\n{debt_details_str}" if finance_data['debt'] > 0 else "💳 Đang nợ: 0 VNĐ\n"
-    
+
     msg = (
         f"📊 BÁO CÁO TÀI CHÍNH ({today_display})\n"
         f"━━━━━━━━━━━━━━━\n"
@@ -184,11 +183,11 @@ def parse_money_command(text, prefix):
     parts = content.split(maxsplit=1)
     if not parts:
         return 0, ""
-    
+
     raw_amt = parts[0].replace('k', '000').replace('K', '000').replace(',', '').replace('.', '')
     if not raw_amt.isdigit() or int(raw_amt) <= 0:
         return 0, ""
-        
+
     amount = int(raw_amt)
     reason = parts[1] if len(parts) > 1 else "Không ghi chú"
     return amount, reason
@@ -198,23 +197,23 @@ def parse_debt_command(text, prefix):
     parts = content.split(maxsplit=2)
     if len(parts) < 2:
         return 0, "", ""
-    
+
     raw_amt = parts[0].replace('k', '000').replace('K', '000').replace(',', '').replace('.', '')
     if not raw_amt.isdigit() or int(raw_amt) <= 0:
         return 0, "", ""
-        
+
     amount = int(raw_amt)
-    person = parts[1].capitalize() 
+    person = parts[1].capitalize()
     reason = parts[2] if len(parts) > 2 else "Không ghi chú"
     return amount, person, reason
 
 # ==========================================
 # 4. TRẠNG THÁI WEBHOOK & ĐƠN HÀNG
 # ==========================================
-pending_orders = {}                 
+pending_orders = {}
 orders_lock = threading.Lock()
 
-recent_hashes = {}                  
+recent_hashes = {}
 recent_lock = threading.Lock()
 
 last_chat = {"thread_id": None, "thread_type": None}
@@ -231,11 +230,11 @@ def deliver(text: str, targets) -> bool:
     for thread_id, thread_type in targets:
         for attempt in range(1, SEND_RETRIES + 1):
             try:
-                res = bot_client.send(
+                bot_client.send(
                     Message(text=text), thread_id=thread_id, thread_type=thread_type
                 )
                 return True
-            except Exception as e:
+            except Exception:
                 time.sleep(1.5 * attempt)
     return False
 
@@ -278,6 +277,13 @@ class MoneyBot(ZaloAPI):
             )
             return
 
+        if text == "test":
+            self.replyMessage(
+                Message(text="✅ Bot đang hoạt động bình thường."),
+                message_object, thread_id, thread_type,
+            )
+            return
+
         # ======================================
         # CÁC LỆNH SỔ TÀI CHÍNH
         # ======================================
@@ -286,7 +292,6 @@ class MoneyBot(ZaloAPI):
             self.replyMessage(Message(text=report_msg), message_object, thread_id, thread_type)
             return
 
-        # Lệnh ghi nhận chi tiêu ngoài
         if text.startswith("chi "):
             amount, reason = parse_money_command(text, "chi ")
             if amount > 0:
@@ -304,7 +309,7 @@ class MoneyBot(ZaloAPI):
             else:
                 self.replyMessage(Message(text="⚠️ Sai cú pháp! Mẫu: thu 100k luong"), message_object, thread_id, thread_type)
             return
-            
+
         if text.startswith("vay "):
             amount, person, reason = parse_debt_command(text, "vay ")
             if amount > 0 and person:
@@ -351,15 +356,30 @@ class MoneyBot(ZaloAPI):
         extra_note = parts[2] if len(parts) > 2 else ""
         transfer_content = f"Thanh toan bee {trans_code} {extra_note}".strip()
 
-        # Đường dẫn URL trực tiếp từ VietQR
+        # Sử dụng đuôi .jpg chuẩn RGB giúp Zalo đồng bộ ảnh nhanh và không bị xám khung
         qr_url = (
-            f"https://img.vietqr.io/image/{BANK_ID}-{ACCOUNT_NO}-compact2.png"
+            f"https://img.vietqr.io/image/{BANK_ID}-{ACCOUNT_NO}-compact2.jpg"
             f"?amount={amount}"
             f"&addInfo={urllib.parse.quote(transfer_content)}"
             f"&accountName={urllib.parse.quote(ACCOUNT_NAME)}"
         )
 
+        qr_path = os.path.abspath(f"cache/qr_{trans_code}.jpg")
         try:
+            resp = requests.get(
+                qr_url,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+                timeout=15,
+            )
+            resp.raise_for_status()
+
+            with open(qr_path, "wb") as f:
+                f.write(resp.content)
+                f.flush()
+                os.fsync(f.fileno())
+
+            time.sleep(0.3)
+
             with orders_lock:
                 pending_orders[trans_code] = {
                     "amount": amount,
@@ -380,16 +400,25 @@ class MoneyBot(ZaloAPI):
                 f"━━━━━━━━━━━━━━━\n"
                 f"⏳ Đang chờ nhận tiền... Hệ thống sẽ tự động báo ngay khi tiền vào!"
             )
-            
-            # Gửi trực tiếp link ảnh qua tính năng sendImage thay vì sendLocalImage
-            self.sendImage(
-                imageURL=qr_url,
+
+            self.sendLocalImage(
+                qr_path,
                 thread_id=thread_id,
                 thread_type=thread_type,
-                message=Message(text=caption)
+                message=Message(text=caption),
+                width=540,
+                height=640,
             )
+
+            # Đợi 1 giây sau khi gửi để tiến trình upload hoàn tất trước khi xóa file
+            time.sleep(1.0)
+
         except Exception as e:
-            self.replyMessage(Message(text=f"❌ Lỗi khi tạo mã QR: {e}"), message_object, thread_id, thread_type)
+            log.error("Lỗi tạo QR: %s", e)
+            self.replyMessage(
+                Message(text=f"❌ Lỗi khi tạo mã QR: {e}\n🔗 Link QR dự phòng: {qr_url}"),
+                message_object, thread_id, thread_type,
+            )
         finally:
             if os.path.exists(qr_path):
                 try:
@@ -407,8 +436,8 @@ def parse_tcb_notification(title: str, content: str):
     credit = re.search(r"(?:\+\s*(?:VND|VNĐ)?\s*([\d\.,]+))|(?:(?:VND|VNĐ)\s*([\d\.,]+))", full_text, re.IGNORECASE)
     debit = re.search(r"-\s*(?:VND|VNĐ)?\s*([\d\.,]+)", full_text, re.IGNORECASE)
 
-    direction, amount = "in", 0 
-    
+    direction, amount = "in", 0
+
     if credit:
         raw_val = credit.group(1) or credit.group(2)
         if raw_val:
@@ -510,7 +539,7 @@ def receive_bank_notification():
         purge_expired_orders()
         info = parse_tcb_notification(title, content)
         amount = info["amount"]
-        
+
         # === TỰ ĐỘNG GHI SỔ DOANH THU KHI NHẬN TIỀN ===
         if amount > 0 and info["direction"] == "in":
             add_transaction("doanh_thu", amount, f"Ngân hàng TCB: {info['code'] if info['code'] else 'Ngoài luồng'}")
