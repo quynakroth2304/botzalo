@@ -365,6 +365,9 @@ class MoneyBot(ZaloAPI):
             with open(qr_path, "wb") as f:
                 f.write(resp.content)
 
+            # Đợi 0.5 giây để đảm bảo file đã được ghi hoàn tất xuống ổ đĩa
+            time.sleep(0.5)
+
             with orders_lock:
                 pending_orders[trans_code] = {
                     "amount": amount,
@@ -385,15 +388,18 @@ class MoneyBot(ZaloAPI):
                 f"━━━━━━━━━━━━━━━\n"
                 f"⏳ Đang chờ nhận tiền... Hệ thống sẽ tự động báo ngay khi tiền vào!"
             )
+            
+            # Cố định lại kích thước chuẩn (width=400, height=500) để Zalo không bị lỗi khung xám
             self.sendLocalImage(
                 qr_path,
                 thread_id=thread_id,
                 thread_type=thread_type,
                 message=Message(text=caption),
-                width=600,
-                height=750,
+                width=400,
+                height=500,
             )
         except Exception as e:
+            log.error("Lỗi tạo QR: %s", e)
             self.replyMessage(Message(text=f"❌ Lỗi khi tạo mã QR: {e}"), message_object, thread_id, thread_type)
         finally:
             if os.path.exists(qr_path):
