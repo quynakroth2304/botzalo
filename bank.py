@@ -351,6 +351,7 @@ class MoneyBot(ZaloAPI):
         extra_note = parts[2] if len(parts) > 2 else ""
         transfer_content = f"Thanh toan bee {trans_code} {extra_note}".strip()
 
+        # Đường dẫn URL trực tiếp từ VietQR
         qr_url = (
             f"https://img.vietqr.io/image/{BANK_ID}-{ACCOUNT_NO}-compact2.png"
             f"?amount={amount}"
@@ -358,16 +359,7 @@ class MoneyBot(ZaloAPI):
             f"&accountName={urllib.parse.quote(ACCOUNT_NAME)}"
         )
 
-        qr_path = f"cache/qr_{trans_code}.png"
         try:
-            resp = requests.get(qr_url, timeout=15)
-            resp.raise_for_status()
-            with open(qr_path, "wb") as f:
-                f.write(resp.content)
-
-            # Đợi 0.5 giây để đảm bảo file đã được ghi hoàn tất xuống ổ đĩa
-            time.sleep(0.5)
-
             with orders_lock:
                 pending_orders[trans_code] = {
                     "amount": amount,
@@ -389,17 +381,14 @@ class MoneyBot(ZaloAPI):
                 f"⏳ Đang chờ nhận tiền... Hệ thống sẽ tự động báo ngay khi tiền vào!"
             )
             
-            # Cố định lại kích thước chuẩn (width=400, height=500) để Zalo không bị lỗi khung xám
-            self.sendLocalImage(
-                qr_path,
+            # Gửi trực tiếp link ảnh qua tính năng sendImage thay vì sendLocalImage
+            self.sendImage(
+                imageURL=qr_url,
                 thread_id=thread_id,
                 thread_type=thread_type,
-                message=Message(text=caption),
-                width=400,
-                height=500,
+                message=Message(text=caption)
             )
         except Exception as e:
-            log.error("Lỗi tạo QR: %s", e)
             self.replyMessage(Message(text=f"❌ Lỗi khi tạo mã QR: {e}"), message_object, thread_id, thread_type)
         finally:
             if os.path.exists(qr_path):
